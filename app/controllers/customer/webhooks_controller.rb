@@ -1,6 +1,7 @@
 class Customer::WebhooksController < ApplicationController
   skip_before_action :verify_authenticity_token
 
+  # rubocop:disable Metrics/AbcSize
   def create
     payload = request.body.read
     sig_header = request.env['HTTP_STRIPE_SIGNATURE']
@@ -40,6 +41,7 @@ class Customer::WebhooksController < ApplicationController
       end
       # トランザクション処理終了
       customer.cart_items.destroy_all # 顧客のカート内商品を全て削除
+      OrderMailer.complete(email: session.customer_details.email).deliver_later
       redirect_to session.success_url
     end
   end
@@ -73,3 +75,4 @@ class Customer::WebhooksController < ApplicationController
     purchased_product.update!(stock: (purchased_product.stock - order_detail.quantity)) # 購入された商品の在庫数の更新
   end
 end
+# rubocop:enable Metrics/AbcSize
